@@ -1,6 +1,11 @@
 package com.gtnh.dualoutputhatchme.registration;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.CraftingManager;
+import net.minecraft.item.crafting.IRecipe;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.enums.GTValues;
@@ -20,6 +25,9 @@ public class Registration {
      */
     public static final int MTE_ID = 25300;
 
+    /** 方块说明行数：getDescription() 与 LangFixer 写入的语言键数量共用此常量。 */
+    public static final int DESCRIPTION_LINE_COUNT = 6;
+
     public static ItemStack DUAL_OUTPUT_HATCH_ME;
 
     public static void registerMetaTileEntities() {
@@ -38,16 +46,40 @@ public class Registration {
     }
 
     public static void registerRecipes() {
+        List<IRecipe> craftingRecipes = CraftingManager.getInstance()
+            .getRecipeList();
         // 组装机(HV)：输出总线(ME) + 输出仓(ME) + AE2 印刷电路类材料x4 + 集成电路(1) -> 输出总成(ME)
         GTValues.RA.stdBuilder()
             .itemInputs(
-                ItemList.Hatch_Output_Bus_ME.get(1L, new Object[0]),
-                ItemList.Hatch_Output_ME.get(1L, new Object[0]),
+                getInputVariants(ItemList.Hatch_Output_Bus_ME.get(1L), craftingRecipes),
+                getInputVariants(ItemList.Hatch_Output_ME.get(1L), craftingRecipes),
                 GTModHandler.getModItem(Mods.AppliedEnergistics2.ID, "item.ItemMultiMaterial", 4L, 30),
                 GTUtility.getIntegratedCircuit(1))
             .itemOutputs(DUAL_OUTPUT_HATCH_ME.copy())
             .duration(300)
             .eut(TierEU.RECIPE_HV)
-            .addTo(RecipeMaps.assemblerRecipes);
+            // 组装机默认的 build() 会丢弃候选材料，NEI 需要 GTRecipe_WithAlt。
+            .buildWithAlt()
+            .ifPresent(RecipeMaps.assemblerRecipes::add);
+    }
+
+    static ItemStack[] getInputVariants(ItemStack base, Iterable<IRecipe> craftingRecipes) {
+        List<ItemStack> variants = new ArrayList<>();
+        variants.add(base.copy());
+        for (IRecipe recipe : craftingRecipes) {
+            ItemStack output = recipe.getRecipeOutput();
+            if (
+                output == null || !base.isItemEqual(output)
+                    || variants.stream()
+                        .anyMatch(existing -> ItemStack.areItemStackTagsEqual(existing, output))
+            ) {
+                continue;
+            }
+            // AE 样板按 NBT 精确匹配；保留上游升级配方的容量数据。
+            ItemStack variant = output.copy();
+            variant.stackSize = base.stackSize;
+            variants.add(variant);
+        }
+        return variants.toArray(new ItemStack[0]);
     }
 }

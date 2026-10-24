@@ -7,7 +7,6 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
@@ -318,11 +317,6 @@ public class MTEDualOutputHatchME extends MTEHatchOutputME implements IDualOutpu
         super.onPostTick(aBaseMetaTileEntity, aTick);
     }
 
-    @Override
-    public boolean onRightclick(IGregTechTileEntity aBaseMetaTileEntity, EntityPlayer aPlayer) {
-        return super.onRightclick(aBaseMetaTileEntity, aPlayer);
-    }
-
     /**
      * 共用网络查询与总预算，未完成的条目留在轮转队列中，不依赖新产出来唤醒。
      */
@@ -440,7 +434,15 @@ public class MTEDualOutputHatchME extends MTEHatchOutputME implements IDualOutpu
         if (slot < 0 || slot >= FILTER_ITEM_SLOTS) {
             return;
         }
-        this.filterItemMarks[slot] = mark == null || mark.getItem() == null ? null : mark.copy();
+        // 标记只记种类（item+meta）：归一数量为 1，与 loadNBTData 的读取路径一致，
+        // 否则标记格会带手持堆的数量角标，存档重载前后显示不一致。
+        if (mark == null || mark.getItem() == null) {
+            this.filterItemMarks[slot] = null;
+        } else {
+            ItemStack normalized = mark.copy();
+            normalized.stackSize = 1;
+            this.filterItemMarks[slot] = normalized;
+        }
         this.markDirty();
     }
 
@@ -1465,7 +1467,7 @@ public class MTEDualOutputHatchME extends MTEHatchOutputME implements IDualOutpu
      */
     @Override
     public String[] getDescription() {
-        String[] description = new String[6];
+        String[] description = new String[Registration.DESCRIPTION_LINE_COUNT];
         for (int i = 0; i < description.length; i++) {
             description[i] = StatCollector.translateToLocal("dualoutputhatchme.desc." + i);
         }

@@ -7,6 +7,7 @@ import javax.annotation.Nonnull;
 import net.minecraft.item.ItemStack;
 
 import appeng.me.helpers.AENetworkProxy;
+import gregtech.api.metatileentity.implementations.MTEHatchOutputBus;
 
 /**
  * 标记接口：既当输出仓（流体）又当输出总线（物品）使用的 ME 仓。
@@ -40,7 +41,7 @@ public interface IDualOutputHatch {
      * 取得影子输出总线：它会被挂进多方块的 mOutputBusses，使本仓同时被识别为输出总线。
      * 影子仓不占方块、不占世界，所有物品操作转发回本仓的无限物品缓存。
      */
-    gregtech.api.metatileentity.implementations.MTEHatchOutputBus getItemBusShadow();
+    MTEHatchOutputBus getItemBusShadow();
 
     /**
      * 输出优先级：同一多方块里有多个输出总成时，物品与流体优先进优先级高的。

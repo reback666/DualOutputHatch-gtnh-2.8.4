@@ -1,5 +1,7 @@
 package com.gtnh.dualoutputhatchme.api;
 
+import java.util.Objects;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fluids.FluidStack;
@@ -78,19 +80,28 @@ public final class DualCacheEntry {
         if (this.kind != other.kind || this.amount != other.amount) {
             return false;
         }
-        if (!this.name.equals(other.name)) {
+        if (this.name == null ? other.name != null : !this.name.equals(other.name)) {
             return false;
         }
         if (this.isItem()) {
+            // areItemStacksEqual 自带 null 判断
             return ItemStack.areItemStacksEqual(this.item, other.item);
         }
-        return this.fluid.isFluidEqual(other.fluid);
+        // 畸形同步数据（流体条目缺 fluid）一律视为不等，避免 NPE
+        return this.fluid != null && other.fluid != null && this.fluid.isFluidEqual(other.fluid);
     }
 
     @Override
     public int hashCode() {
-        int result = this.kind * 31 + this.name.hashCode();
+        int result = this.kind * 31 + Objects.hashCode(this.name);
         result = result * 31 + Long.hashCode(this.amount);
+        if (this.isItem()) {
+            // 同一种物品共享同一个 Item 实例，identity hash 与 areItemStacksEqual 语义一致
+            result = result * 31 + Objects.hashCode(this.item == null ? null : this.item.getItem());
+        } else {
+            // 同一种流体是同一个注册单例
+            result = result * 31 + Objects.hashCode(this.fluid == null ? null : this.fluid.getFluid());
+        }
         return result;
     }
 }

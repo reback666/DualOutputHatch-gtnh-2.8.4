@@ -14,6 +14,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.gtnh.dualoutputhatchme.registration.Registration;
+
 /**
  * 把方块名称与物品说明直接写进 GT 的语言缓存文件。
  *
@@ -30,7 +32,6 @@ public final class LangFixer {
     private static final String LANG_RESOURCE_DIR = "/assets/dualoutputhatchme/lang/";
     private static final String NAME_KEY = "gt.blockmachines.hatch.dual_output.me.name";
     private static final String DESC_KEY_PREFIX = "dualoutputhatchme.desc.";
-    private static final int DESC_LINES = 6;
     /** GT/Forge 配置的段头，实测为全小写；比对时忽略大小写以防 GT 改格式。 */
     private static final String SECTION_HEADER = "languagefile {";
     /**
@@ -93,7 +94,7 @@ public final class LangFixer {
         if (name != null) {
             updates.put(NAME_KEY, name);
         }
-        for (int i = 0; i < DESC_LINES; i++) {
+        for (int i = 0; i < Registration.DESCRIPTION_LINE_COUNT; i++) {
             String desc = lang.get(DESC_KEY_PREFIX + i);
             if (desc != null) {
                 updates.put(String.format("TileEntity_DESCRIPTION_%05d_Index_%02d", metaTileId, i), desc);
