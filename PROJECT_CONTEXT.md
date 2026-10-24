@@ -14,7 +14,7 @@
 | GitHub | https://github.com/reback666/DualOutputHatch-gtnh-2.8.4 |
 | MTE ID | 25300（GTNH 第三方段 17000-29999，冲突时改这个常量） |
 | 本地化键 | `hatch.dual_output.me` |
-| Release | 推送标签（如 `v1.6.7`）自动触发 |
+| Release | 推送标签（如 `v1.0.0`）自动触发 |
 
 ## 关键类
 
